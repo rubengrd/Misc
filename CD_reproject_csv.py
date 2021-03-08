@@ -15,26 +15,27 @@ geo_data = gpd.GeoDataFrame (fp, geometry = "geometry")
 geo_data[["latitude","longitude"]] = geo_data[["latitude","longitude"]].astype("float")
 geo_data.crs = 'EPSG:4326' 
 
-# We loop over latitude and longitude values
-for index, rows in geo_data.iterrows():
-    p = [rows.longitude, rows.latitude]
-    geo_data.loc[index, "geometry"] = Point(p)
-    #We generate the shapely point and insert it into the dataframe
-    #This loop may not be the most performing one and you'll see that
-    #Iterrows is a deprecated method, but it does its job!!!! 
+# Loop over latitude and longitude values in the dataframe
+#We generate the shapely point and insert it into the dataframe
+i = 0
+for xy in zip (geo_data["longitude"], geo_data["latitude"]):
+    coor = [xy[0],xy[1]]
+    geo_data.loc[i, "geometry"] = Point(coor)
+    i = i+1
 
 # Add two new columns, northing and easting of the projected coordinates
 geo_data["north"] = ""
 geo_data["east"] = ""
 
-# Reprojection to RGF93. Choose the CRS you need!
-geo_data = geo_data.to_crs("EPSG:2154")
+# Reprojection to RGF93. Here you select the coordinate system of your choice
+geo_data = geo_data.to_crs("EPSG:2154") 
 
 # Loop to insert the coordinates into the new columns
-for index1, rows1 in geo_data.iterrows():
-    p1 = [rows1.geometry.x, rows1.geometry.y]
-    geo_data.loc[index1, "north"] = p1[0]
-    geo_data.loc[index1, "east"] = p1[1]
+j =0
+for p in geo_data["geometry"]:
+    geo_data.loc[j,"north"] = p.y
+    geo_data.loc[j,"east"] = p.x
+    j = j+1
 
 print (geo_data)
 print (geo_data.crs) # Data check
@@ -45,7 +46,7 @@ outFP = r"C:\python\tests\Tai_testpython"
 ####################################################################
 ########################EXPORT TO CSV ##############################
 ####################################################################
-#Please note that you should choose only one of the two export methods#
+######Please choose only one of the two export methods below########
 geo_data.to_csv(outFP)
 
 ####################################################################
